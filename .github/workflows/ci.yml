@@ -14,11 +14,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
       - name: Install dependencies
-        run: sudo apt-get install -y build-essential libtool autoconf automake tcc qemu-user-static gcc-powerpc-linux-gnu
+        run: sudo apt-get install -y build-essential libtool autoconf automake tcc qemu-user-static clang gcc-powerpc-linux-gnu
 
       - name: Autogen
         run: ./autogen.sh -s
@@ -48,7 +47,13 @@ jobs:
         run: |
           env CC=g++ CPPFLAGS="-DDEV_MODE=1" ./configure --disable-dependency-tracking
           make -j $(nproc) check
-          make distclean > /dev/null
+          make clean > /dev/null
+
+      - name: Compilation with clang
+        run: |
+          env CC=clang CPPFLAGS="-DDEV_MODE=1" ./configure --disable-dependency-tracking
+          make -j $(nproc) check
+          make clean > /dev/null
 
       - name: Big-Endian PowerPC test
         run: |
