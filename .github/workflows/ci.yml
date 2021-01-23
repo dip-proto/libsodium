@@ -44,6 +44,12 @@ jobs:
           make distclean > /dev/null
           test/rename-globals.sh
 
+      - name: Compilation with g++
+        run: |
+          env CC=g++ CPPFLAGS="-DDEV_MODE=1" ./configure --disable-dependency-tracking
+          make -j $(nproc) check
+          make distclean > /dev/null
+
       - name: Big-Endian PowerPC test
         run: |
           env CPPFLAGS="-DDEV_MODE=1" ./configure --disable-dependency-tracking --host=powerpc-linux-gnu
