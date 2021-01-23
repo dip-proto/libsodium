@@ -10,14 +10,14 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-tcc:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
 
       - name: Install dependencies
-        run: sudo apt-get install -y build-essential libtool autoconf automake tcc qemu-user-static clang gcc-powerpc-linux-gnu
+        run: sudo apt-get install -y build-essential libtool autoconf automake tcc
 
       - name: Autogen
         run: ./autogen.sh -s
@@ -29,6 +29,18 @@ jobs:
           env CC=tcc CPPFLAGS='-I/tmp/include' LDFLAGS='-L/tmp/lib' LD_LIBRARY_PATH='/tmp/lib' ./test/constcheck.sh
           make uninstall
           make distclean
+
+  build-regular:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: sudo apt-get install -y build-essential libtool autoconf automake
+
+      - name: Autogen
+        run: ./autogen.sh -s
 
       - name: Regular compilation
         run: |
@@ -43,6 +55,18 @@ jobs:
           make distclean > /dev/null
           test/rename-globals.sh
 
+  build-othercomps:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: sudo apt-get install -y build-essential libtool autoconf automake clang
+
+      - name: Autogen
+        run: ./autogen.sh -s
+
       - name: Compilation with g++
         run: |
           env CC=g++ CPPFLAGS="-DDEV_MODE=1" ./configure --disable-dependency-tracking
@@ -54,6 +78,18 @@ jobs:
           env CC=clang CPPFLAGS="-DDEV_MODE=1" ./configure --disable-dependency-tracking
           make -j $(nproc) check
           make clean > /dev/null
+
+  build-otherarchs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: sudo apt-get install -y build-essential libtool autoconf automake qemu-user-static gcc-powerpc-linux-gnu
+
+      - name: Autogen
+        run: ./autogen.sh -s
 
       - name: Big-Endian PowerPC test
         run: |
