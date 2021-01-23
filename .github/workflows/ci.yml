@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [ master, stable, next ]
+  pull_request:
+    branches: [ master, stable, next ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: apt-get install -y build-essential libtool autoconf automake tcc qemu-user-static gcc-powerpc-linux-gnu
+
+      - name: Autogen
+        run: ./autogen.sh -s
+        
+      - name: Compilation with tcc
+        run: |
+          env CC=tcc CFLAGS='-w' CPPFLAGS="-DDEV_MODE=1" ./configure --prefix=/tmp --disable-dependency-tracking --disable-shared || cat config.log
+          make -j $(nproc) && make check && make install
+          env CC=tcc CPPFLAGS='-I/tmp/include' LDFLAGS='-L/tmp/lib' LD_LIBRARY_PATH='/tmp/lib' ./test/constcheck.sh
+          make uninstall
+          make distclean
+          
